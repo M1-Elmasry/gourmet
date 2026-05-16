@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { del, list } from '@vercel/blob'
+import { deleteImages } from '../lib/cloudinary'
 import { sql } from '../db/client'
 
 const cron = new Hono()
@@ -26,8 +26,14 @@ cron.get('/cleanup', async (c) => {
       .map((r: any) => r.image_url)
       .filter(Boolean)
 
+    let deletedImages = urlsToDelete.length
     if (urlsToDelete.length > 0) {
-      await del(urlsToDelete)
+      try {
+        deletedImages = await deleteImages(urlsToDelete)
+      } catch (delErr) {
+        console.warn('Image cleanup skipped:', (delErr as Error).message)
+        deletedImages = 0
+      }
     }
 
     // Delete old records from DB
@@ -37,12 +43,12 @@ cron.get('/cleanup', async (c) => {
       RETURNING id
     `
 
-    console.log(`Cleanup: deleted ${deleted.length} records, ${urlsToDelete.length} images`)
+    console.log(`Cleanup: deleted ${deleted.length} records, ${deletedImages} images`)
 
     return c.json({
       success: true,
       deletedRecords: deleted.length,
-      deletedImages: urlsToDelete.length,
+      deletedImages,
     })
   } catch (err) {
     console.error('Cleanup error:', err)

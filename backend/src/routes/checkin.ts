@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { put } from '@vercel/blob'
+import { uploadImage } from '../lib/cloudinary'
 import { sql } from '../db/client'
 import { requireAuth } from '../middleware/auth'
 
@@ -15,14 +15,10 @@ async function handleCheckInOut(c: any, type: 'checkin' | 'checkout') {
 
     if (imageFile && imageFile.size > 0) {
       try {
-        const buffer = await imageFile.arrayBuffer()
-        const blob = await put(`checkin/${user.id}/${Date.now()}.jpg`, buffer, {
-          access: 'public',
-          contentType: 'image/jpeg',
-        })
-        imageUrl = blob.url
-      } catch (blobErr) {
-        console.warn('Blob upload skipped:', (blobErr as Error).message)
+        const buffer = Buffer.from(await imageFile.arrayBuffer())
+        imageUrl = await uploadImage(buffer, `${user.id}_${Date.now()}`)
+      } catch (uploadErr) {
+        console.warn('Image upload skipped:', (uploadErr as Error).message)
       }
     }
 
