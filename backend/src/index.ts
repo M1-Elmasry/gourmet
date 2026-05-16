@@ -21,8 +21,6 @@ app.use('*', logger())
 app.get('/health', (c) => c.json({ status: 'ok', ts: new Date().toISOString() }))
 
 app.route('/auth', auth)
-app.use('/checkin', checkin as any)
-app.use('/checkout', checkin as any)
 app.route('', checkin)
 app.route('/admin', admin)
 app.route('/cron', cron)

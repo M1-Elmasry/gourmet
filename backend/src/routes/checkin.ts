@@ -14,12 +14,16 @@ async function handleCheckInOut(c: any, type: 'checkin' | 'checkout') {
     let imageUrl: string | null = null
 
     if (imageFile && imageFile.size > 0) {
-      const buffer = await imageFile.arrayBuffer()
-      const blob = await put(`checkin/${user.id}/${Date.now()}.jpg`, buffer, {
-        access: 'public',
-        contentType: 'image/jpeg',
-      })
-      imageUrl = blob.url
+      try {
+        const buffer = await imageFile.arrayBuffer()
+        const blob = await put(`checkin/${user.id}/${Date.now()}.jpg`, buffer, {
+          access: 'public',
+          contentType: 'image/jpeg',
+        })
+        imageUrl = blob.url
+      } catch (blobErr) {
+        console.warn('Blob upload skipped:', (blobErr as Error).message)
+      }
     }
 
     const result = await sql`
