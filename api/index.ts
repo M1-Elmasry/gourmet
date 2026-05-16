@@ -12,7 +12,7 @@ const ensureDb = async () => {
 }
 
 export const config = {
-  runtime: 'nodejss',
+  runtime: 'nodejs',
 }
 
 export default async function handler(req: Request) {
